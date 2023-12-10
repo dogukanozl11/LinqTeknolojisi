@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,12 +9,113 @@ namespace LinqTeknolojisi
 {
     internal class Program
     {
+        #region Uzun yollar için Metotlar
+        static bool funcDelefateKullanimi1(Musteri m)
+        {
+            if (m.isim[0] == 'A')
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        static bool predicateDelegateMetot(Musteri m)
+        {
+            if (m.dogumTarih.Year > 1990)
+            {
+                return true;
+            }
+            else
+                return false;
+        }
+
+        static void musteriListele(Musteri m)
+        {
+            Console.WriteLine(m.isim + " " + m.soyisim);
+        }
+        #endregion
         static void Main(string[] args)
         {
             dataSource ds = new dataSource();
             List<Musteri> musteriListe = ds.musteriListesi();
 
+            #region Linq İnceleme ve Ara Ödevler
+
+            // Müşteri listesi içerisinde bulunan  kayıtlardan ismi a ile başlayan
+            // soyismi değerinin içinde e olan ve doğum yılın 1985 den büyük olan kayıtları getirin.
+
+            var odevAlistirma1 = from I in musteriListe
+                                 where
+                                 I.isim.StartsWith("A") &&
+                                 I.soyisim.Contains("e") &&
+                                 I.dogumTarih.Year > 1985
+                                 select I;
+            Console.WriteLine(odevAlistirma1.Count());
+
+            var odevAlistirma2 = musteriListe.Where
+                (I => I.isim.StartsWith("A") && 
+                I.soyisim.Contains("e") && 
+                I.dogumTarih.Year > 1985).Select(I => I);
+            Console.WriteLine(odevAlistirma2.Count());
+
+            #endregion
+
+            #region Action Delegate
+            //En uzun yol
+            Action<Musteri> actionMusteri = new Action<Musteri>(musteriListele);
+            musteriListe.ForEach(actionMusteri);
+
+            musteriListe.ForEach(new Action<Musteri>(musteriListele));
+
+            musteriListe.ForEach(delegate (Musteri m) { Console.WriteLine(m.isim + " " + m.soyisim); });
+
+            musteriListe.ForEach((Musteri m) => { Console.WriteLine(m.isim + " " + m.soyisim); });
+
+            //en kısa
+            musteriListe.ForEach((m) => { Console.WriteLine(m.isim + " " + m.soyisim); });
+
+
+            #endregion
+
+            #region Linq sorgularında Delegate kullanımı Predicate Delegate
+            //En uzun yol.
+            Predicate<Musteri> predicate = new Predicate<Musteri>(predicateDelegateMetot);
+            var DelegateKullanimiPredicate1 = musteriListe.FindAll(predicate);
+            // 2.
+            var DelegateKullanimiPredicate2 = musteriListe.FindAll(new Predicate<Musteri>(predicateDelegateMetot));
+
+            var DelegateKullanimiPredicate3 = musteriListe.FindAll(delegate (Musteri m) { return m.dogumTarih.Year > 1990; });
+
+            var DelegateKullanimiPredicate4 = musteriListe.FindAll((Musteri m) => { return m.dogumTarih.Year > 1990; });
+
+            var DelegateKullanimiPredicate5 = musteriListe.FindAll((m) => { return m.dogumTarih.Year > 1990; });
+
+            var DelegateKullanimiPredicate6 = musteriListe.FindAll(m => m.dogumTarih.Year > 1990);
+
+
+            #endregion
+
             #region LinQ Sorgularında Delegate kullanımı =>
+
+            var DelegateKullanimi1 = musteriListe.Where(I => I.isim.StartsWith("A"));
+
+            Func<Musteri, bool> funcDelegate1 = new Func<Musteri, bool>(funcDelefateKullanimi1);
+            var DelegateKullanimi2 = musteriListe.Where(funcDelegate1);
+            DelegateKullanimi2 = musteriListe.Where(funcDelefateKullanimi1);
+
+            var DelegateKullanimi3 = musteriListe.Where(new Func<Musteri, bool>(funcDelefateKullanimi1));
+
+            var DelegateKullanimi4 = musteriListe.Where(delegate (Musteri m) { return m.isim[0] == 'A' ? true : false; });
+
+            var DelegateKullanimi5 = musteriListe.Where((Musteri m) => { return m.isim[0] == 'A' ? true : false; });
+
+            var DelegateKullanimi6 = musteriListe.Where((m) => { return m.isim[0] == 'A' ? true : false; });
+
+            var DelegateKullanimi7 = musteriListe.Where(m => m.isim[0] == 'A'); // =>
+
 
             #endregion
 
